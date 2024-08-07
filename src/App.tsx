@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import WindowsPage from './WindowsPage';
-import MacPage from './MacPage';
-import LinuxPage from './LinuxPage';
+import WindowsDetector from './OS-CD-Detector/WindowsCD-Detector';
+import MacDetector from './OS-CD-Detector/MacCD-Detector';
+import LinuxDetector from './OS-CD-Detector/LinuxCD-Detector';
 import { invoke } from '@tauri-apps/api/tauri';
 
 const App: React.FC = () => {
@@ -22,11 +22,11 @@ const App: React.FC = () => {
 
   switch (os) {
     case 'windows':
-      return <WindowsPage />;
+      return <WindowsDetector />;
     case 'macos':
-      return <MacPage />;
+      return <MacDetector />;
     case 'linux':
-      return <LinuxPage />;
+      return <LinuxDetector />;
     default:
       return <div>Unsupported OS</div>;
   }
