@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import WindowsPage from './WindowsPage';
 import MacPage from './MacPage';
+import LinuxPage from './LinuxPage';
 import { invoke } from '@tauri-apps/api/tauri';
 
 const App: React.FC = () => {
@@ -19,7 +20,16 @@ const App: React.FC = () => {
     return <div>Loading...</div>;
   }
 
-  return os === 'windows' ? <WindowsPage /> : <MacPage />;
+  switch (os) {
+    case 'windows':
+      return <WindowsPage />;
+    case 'macos':
+      return <MacPage />;
+    case 'linux':
+      return <LinuxPage />;
+    default:
+      return <div>Unsupported OS</div>;
+  }
 };
 
 export default App;
