@@ -1,35 +1,61 @@
 import React, { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/tauri';
+import CDPLAYER from './CDPlayer';
 
-function MetadataExtractorPage() {
+function WindowsPage() {
+  const [cdInserted, setCdInserted] = useState(false);
   const [status, setStatus] = useState('');
   const [drive, setDrive] = useState('');
+  const [metadataExtracted, setMetadataExtracted] = useState(false);
+  const [PathOutput, setOutputPath] = useState('');
 
   useEffect(() => {
-    const extractMetadata = async () => {
+    const fetchCurrentDir = async () => {
       try {
-        // Find the CD drive letter
-        const cdDrive = await invoke('find_cd_drive') as string;
-        if (!cdDrive) {
-          setStatus('No CD drive found.');
-          return;
-        }
-        setDrive(cdDrive);
-
-        // Define output path
-        const outputPath = `src/Tracks-Art/metadata.json`; // Adjust the output path
-
-        // Generate metadata JSON
-        await invoke('generate_metadata_json', { drive: cdDrive, outputPath });
-        setStatus('Metadata extraction successful!');
+        const currentDir = await invoke<string>('get_current_dir');
+        const outputPath = `${currentDir}/src/Tracks-Art/metadata.json`;
+        setOutputPath(outputPath);
+        console.log(outputPath); // Log the path to verify
       } catch (error) {
-        console.error('Error extracting metadata:', error);
-        setStatus(`Failed to extract metadata: ${error}`);
+        console.error('Error getting current directory:', error);
       }
     };
 
-    extractMetadata();
-  }, []); // Empty dependency array ensures this runs only once after initial render
+    fetchCurrentDir();
+  }, []);
+
+  useEffect(() => {
+    const checkCd = async () => {
+      try {
+        const cdDrive = await invoke<string>('check_cd_inserted');
+        if (cdDrive) {
+          setCdInserted(true);
+          setDrive(cdDrive);
+          setStatus('CD Detected with files');
+
+          if (PathOutput) {
+            await invoke('generate_metadata_json', { drive: cdDrive, outputPath: PathOutput });
+            setStatus('Metadata extraction successful!');
+            setMetadataExtracted(true);
+          } else {
+            setStatus('Output path not set');
+          }
+        } else {
+          setCdInserted(false);
+          setStatus('No CD detected');
+        }
+      } catch (error) {
+        console.error('Error checking CD:', error);
+        setStatus(`Failed to check CD: ${error}`);
+      }
+    };
+
+    checkCd();
+  }, [PathOutput]);
+
+  if (metadataExtracted) {
+    return <CDPLAYER />;
+  }
 
   return (
     <div>
@@ -40,4 +66,4 @@ function MetadataExtractorPage() {
   );
 }
 
-export default MetadataExtractorPage;
+export default WindowsPage;
